@@ -1,0 +1,1859 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>ATOMIC</title>
+
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"/>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        :root {
+            --bg: #071029;           /* solid dark background */
+            --panel: #0c1a2b;
+            --muted: #9fb7d9;
+            --accent: #ffd166;
+            --neon: #7b61ff;
+            --not: #ff7b6b;
+            --progress: #4fc3f7;
+            --complete: #6ee7b7;
+            --total: #a78bfa;
+            --total-new: #67554C;    /* New blue for total missions */
+            --goal-new: #FFD700;     /* New pink for monthly goal */
+            --add-new: #1f51ff;      /* New green for add mission */
+        }
+        
+        * {
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #e6f3ff;
+        }
+        
+        html, body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        
+        .wrap {
+            max-width: 980px;
+            margin: 12px auto;
+            padding: 14px;
+        }
+
+        /* Header: logo centered top, profile below */
+        header.header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .logo-container {
+            width: 350px;
+            height: auto;
+        }
+        
+        .logo-container img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .profile {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 6px 10px;
+            background: var(--panel);
+            border-radius: 10px;
+            width: 100%;
+            max-width: 350px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            justify-content: center; /* Pusatkan profil */
+        }
+        
+        .avatar {
+    width:38px;height:38px;border-radius:50%;background:#0b2a3a;display:flex;align-items:center;justify-content:center;overflow:hidden;border:3px solid rgba(255,255,255,0.03);
+  }
+  .avatar img{width:100%;height:100%;object-fit:cover;display:block}
+  .avatar-initial{font-weight:800;font-size:16px;color:var(--accent)}
+  .profile-info{display:flex;flex-direction:column;align-items:center}
+  .profile-info .name{font-weight:800;font-size:11px;text-transform:uppercase}
+  .profile-info .role{font-size:10px;color:var(--muted)}
+
+
+        /* Login box (centered card) */
+        .login-card {
+            max-width: 420px;
+            margin: 30px auto;
+            padding: 20px;
+            border-radius: 12px;
+            background: var(--panel);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        }
+        
+        .login-card h2 {
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            text-align: center;
+            color: var(--accent);
+        }
+        
+        .login-card input, .login-card select, .login-card button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: rgba(255, 255, 255, 0.05);
+            color: #e6f3ff;
+            margin-bottom: 12px;
+            font-size: 14px;
+        }
+        
+        .login-card input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Perbaikan tampilan dropdown */
+        .login-card select, .modal select {
+            color: #e6f3ff !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            appearance: menulist; /* Memastikan dropdown terlihat normal */
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+        }
+        
+        /* Styling untuk options dalam dropdown */
+        .login-card select option, .modal select option {
+            background-color: var(--panel);
+            color: #e6f3ff;
+            padding: 10px;
+        }
+        
+        .login-card button {
+            margin-top: 10px;
+            background: var(--accent);
+            color: #041225;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .login-card button:hover {
+            background: #ffc44d;
+            transform: translateY(-2px);
+        }
+
+        /* Stats grid 2 columns */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .stat {
+            padding: 12px;
+            border-radius: 10px;
+            background: var(--panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .stat .left {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .stat small {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        
+        .bubble {
+            min-width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            color: #041225;
+            position: relative;
+            font-size: 16px;
+        }
+        
+        .bubble.total { background: var(--total-new); }
+        .bubble.not { background: var(--not); }
+        .bubble.progress { background: var(--progress); }
+        .bubble.complete { background: var(--complete); }
+        
+        .stat-badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #fff;
+            color: #041225;
+            padding: 3px 6px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 11px;
+            min-width: 20px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .stat-badge.total-badge { background: var(--total-new); color: #041225; }
+        .stat-badge.not-badge { background: var(--not); color: #041225; }
+        .stat-badge.progress-badge { background: var(--progress); color: #041225; }
+        .stat-badge.complete-badge { background: var(--complete); color: #041225; }
+
+        /* Goal card - Compact layout dengan input yang lebih lebar */
+        .goal {
+            margin-top: 15px;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: var(--panel);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .goal .left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .goal .icon {
+            width: 35px;
+            height: 35px;
+            border-radius: 8px;
+            background: var(--goal-new);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #041225;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        
+        .goal .text {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            flex: 1;
+        }
+        
+        .goal .text small {
+            font-size: 10px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        
+        .goal .text h4 {
+            margin: 2px 0 0 0;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .goal .actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-shrink: 0;
+        }
+        
+        /* Perbaikan input goal agar lebih lebar */
+        .goal .actions input {
+            padding: 6px 8px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            background: transparent;
+            color: inherit;
+            width: 00px; /* Lebar input diperbesar */
+            min-width: 450px;
+            font-size: 12px;
+        }
+        
+        .goal .actions button {
+            padding: 6px;
+            font-size: 12px;
+        }
+
+        /* Tasks panels */
+        .panels {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+        
+        .panel {
+            background: var(--panel);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .panel .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .panel h5 {
+            margin: 0;
+            font-size: 13px;
+            color: #fff;
+            font-weight: 700;
+        }
+        
+        .panel .count {
+            font-weight: 800;
+            color: var(--muted);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 2px 6px;
+            border-radius: 10px;
+            font-size: 10px;
+        }
+        
+        .panel .body {
+            margin-top: 10px;
+            max-height: 300px;
+            overflow: auto;
+        }
+        
+        .task {
+            padding: 8px;
+            border-radius: 6px;
+            margin-bottom: 6px;
+            background: rgba(255, 255, 255, 0.02);
+            display: flex;
+            flex-direction: column;
+            border-left: 3px solid transparent;
+            transition: all 0.2s ease;
+        }
+        
+        .task:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        
+        .task.not-started { border-left-color: var(--not); }
+        .task.in-progress { border-left-color: var(--progress); }
+        .task.completed { border-left-color: var(--complete); }
+        
+        .task .title {
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #fff;
+            font-size: 12px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .task .notes {
+            font-size: 11px;
+            color: var(--muted);
+            margin-top: 3px;
+            text-transform: uppercase;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .task .meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 6px;
+        }
+        
+        .pill {
+            padding: 4px 6px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 9px;
+            color: #fff;
+        }
+        
+        .pill.not { background: rgba(255, 123, 107, 0.12); color: var(--not); }
+        .pill.progress { background: rgba(79, 195, 247, 0.12); color: var(--progress); }
+        .pill.complete { background: rgba(110, 231, 183, 0.12); color: var(--complete); }
+        
+        .task-actions {
+            display: flex;
+            gap: 3px;
+        }
+        
+        .task-actions button {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 4px;
+            border-radius: 5px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 11px;
+        }
+        
+        .task-actions button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+
+        /* Footer control */
+        footer.control {
+            position: fixed;
+            left: 50%;
+            transform: translateX(-50%);
+            bottom: 15px;
+            background: var(--panel);
+            padding: 8px 16px;
+            border-radius: 999px;
+            display: flex;
+            gap: 15px;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            z-index: 200;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+        
+        .control .icon {
+            font-size: 18px;
+            color: var(--muted);
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        
+        .control .icon:hover {
+            color: #fff;
+        }
+        
+        .control .badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: var(--not);
+            color: #041225;
+            padding: 2px 5px;
+            border-radius: 999px;
+            font-weight: 800;
+            font-size: 9px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        .control .add {
+            width: 50px;
+            height: 50px;
+            border-radius: 999px;
+            background: var(--add-new);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: #041225;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(31, 81, 255, 0.3);
+        }
+        
+        .control .add:hover {
+            background: #1a43e0;
+            transform: scale(1.05);
+        }
+
+        /* Modal styles */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 400;
+            padding: 10px;
+        }
+        
+        .modal {
+            width: 100%;
+            max-width: 500px;
+            background: var(--panel);
+            padding: 15px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .modal .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .modal .header h4 {
+            color: #fff;
+            margin: 0;
+            font-size: 16px;
+        }
+        
+        .modal .body {
+            margin-top: 12px;
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        
+        .close-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 5px;
+            border-radius: 6px;
+            color: var(--muted);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 12px;
+        }
+        
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        /* Form elements in modal */
+        .modal label {
+            display: block;
+            margin-bottom: 5px;
+            color: #fff;
+            font-weight: 600;
+            font-size: 13px;
+        }
+        
+        .modal input, .modal select, .modal textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 6px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            margin-bottom: 12px;
+            font-size: 13px;
+        }
+        
+        .modal input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+        
+        /* Perbaikan dropdown di modal */
+        .modal select {
+            color: #e6f3ff !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            appearance: menulist;
+            -webkit-appearance: menulist;
+            -moz-appearance: menulist;
+        }
+        
+        .modal select option {
+            background-color: var(--panel);
+            color: #e6f3ff;
+            padding: 10px;
+        }
+        
+        .modal .form-row {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .modal .form-row > div {
+            flex: 1;
+        }
+        
+        .modal .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 12px;
+        }
+        
+        .modal .form-actions button {
+            padding: 8px 16px;
+            border-radius: 6px;
+            border: none;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            font-size: 13px;
+        }
+        
+        .modal .form-actions .cancel-btn {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--muted);
+        }
+        
+        .modal .form-actions .cancel-btn:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+        }
+        
+        .modal .form-actions .save-btn {
+            background: var(--neon);
+            color: #041225;
+        }
+        
+        .modal .form-actions .save-btn:hover {
+            background: #6a4fff;
+        }
+
+        /* Recap Modal */
+        #recapModal .modal {
+            max-width: 550px;
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 220px;
+            width: 100%;
+        }
+
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 15px;
+            right: 15px;
+            background: var(--not);
+            color: white;
+            padding: 12px 16px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            max-width: 300px;
+            animation: slideIn 0.3s ease;
+        }
+        
+        .notification.success {
+            background: var(--complete);
+        }
+        
+        .notification.warning {
+            background: var(--progress);
+        }
+        
+        .notification.info {
+            background: var(--neon);
+        }
+        
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+        .notification-close {
+            background: transparent;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .panels {
+                grid-template-columns: 1fr;
+            }
+            
+            .wrap {
+                padding: 10px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 8px;
+            }
+            
+            footer.control {
+                padding: 6px 14px;
+                gap: 12px;
+                bottom: 12px;
+            }
+            
+            .stat {
+                padding: 10px;
+            }
+            
+            .bubble {
+                min-width: 36px;
+                height: 36px;
+                font-size: 14px;
+            }
+            
+            .stat-badge {
+                top: -5px;
+                right: -5px;
+                padding: 2px 5px;
+                font-size: 10px;
+                min-width: 18px;
+            }
+            
+            .notification {
+                left: 10px;
+                right: 10px;
+                max-width: none;
+                font-size: 14px;
+            }
+            
+            .modal {
+                padding: 12px;
+            }
+            
+            .modal .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .profile {
+                max-width: 100%;
+                padding: 6px 10px;
+            }
+            
+            .goal {
+                padding: 8px 10px;
+            }
+            
+            .goal .text h4 {
+                font-size: 11px;
+            }
+            
+            /* Perbaikan input goal di mobile */
+            .goal .actions input {
+                width: 150px; /* Lebar input di mobile */
+                min-width: 100px;
+            }
+            
+            .control .add {
+                width: 45px;
+                height: 45px;
+                font-size: 18px;
+            }
+            
+            .control .icon {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 400px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .stat {
+                flex-direction: column;
+                text-align: center;
+                gap: 8px;
+                padding: 8px;
+            }
+            
+            .stat .left {
+                align-items: center;
+            }
+            
+            .profile {
+                flex-direction: row;
+                text-align: center;
+                padding: 6px 10px;
+                justify-content: center;
+            }
+            
+            .profile-info {
+                align-items: center;
+            }
+            
+            .goal {
+                flex-direction: row;
+                text-align: left;
+                gap: 8px;
+            }
+            
+            .goal .left {
+                flex-direction: row;
+                text-align: left;
+                gap: 8px;
+            }
+            
+            /* Perbaikan input goal di layar sangat kecil */
+            .goal .actions input {
+                width: 120px;
+                min-width: 80px;
+            }
+            
+            .logo-container {
+                width: 120px;
+            }
+        }
+        
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Animation for task completion */
+        @keyframes taskComplete {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+        
+        .task-complete {
+            animation: taskComplete 0.5s ease;
+        }
+        
+        /* Connection status indicator */
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 1000;
+            background: var(--not);
+            color: white;
+            display: none;
+        }
+        
+        .connection-status.online {
+            background: var(--complete);
+            display: block;
+        }
+        
+        .connection-status.offline {
+            background: var(--not);
+            display: block;
+        }
+    </style>
+</head>
+<body>
+<div class="connection-status" id="connectionStatus"></div>
+
+<div class="wrap">
+
+    <!-- HEADER -->
+    <header class="header">
+        <!-- Logo (centered) -->
+        <div class="logo-container">
+            <img src="logo-atomic.png" alt="ASMO TUBAN Mission Control" id="logoImg" />
+        </div>
+
+        <!-- Profile (avatar + name + role) - Compact layout dan terpusat -->
+        <div class="profile" id="profilePanel" style="display:none">
+            <div class="avatar" id="avatarWrap">
+                <img src="avatar-default.png" alt="Avatar" id="avatarImg" onerror="this.style.display='none';document.getElementById('avatarInitial').style.display='flex'"/>
+                <div id="avatarInitial" class="avatar-initial" style="display:none">OP</div>
+            </div>
+            <div class="profile-info">
+                <div class="name" id="profileName">NAMA LENGKAP</div>
+                <div class="role" id="profileRole">ROLE</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- LOGIN (if not logged in) -->
+    <div class="login-card" id="loginCard">	
+        <h2>WELCOME TO ATOMIC</h2>
+        <input id="inputName" type="text" placeholder="Agent Name (e.g : Sakti Ananda)" />
+        <select id="inputRole">
+            <option value="">Select Role</option>
+            <option>CASHIER</option>
+            <option>CRM SUPPORT</option>
+            <option>FRONT DESK</option>
+            <option>MARKETING</option>
+            <option>SALES ADMIN</option>
+            <option>AFSO</option>
+            <option>DELIVERY MAN</option>
+            <option>MECHANIC</option>
+            <option>OFFICE BOY</option>
+            <option>PDI</option>
+            <option>TEAM LEADER</option>
+            <option>WORKSHOP HEAD</option>
+        </select>
+        <button id="btnLogin">ACCESS</button>
+    </div>
+
+    <!-- DASHBOARD CONTENT (hidden until login) -->
+    <div id="dashboard" style="display:none">
+        <!-- Stats 2-column -->
+        <div class="stats-grid">
+            <div class="stat">
+                <div class="left">
+                    <small>Total Missions</small>
+                </div>
+                <div class="bubble total" id="bubbleTotal">
+                    <i class="fa-solid fa-earth-americas"></i>
+                    <div class="stat-badge total-badge" id="badgeTotal">0</div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="left">
+                    <small>Not Started</small>
+                </div>
+                <div class="bubble not" id="bubbleNot">
+                    <i class="fa-solid fa-triangle-exclamation"></i>
+                    <div class="stat-badge not-badge" id="badgeNot">0</div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="left">
+                    <small>In Progress</small>
+                </div>
+                <div class="bubble progress" id="bubbleProg">
+                    <i class="fas fa-hourglass-start"></i>
+                    <div class="stat-badge progress-badge" id="badgeProg">0</div>
+                </div>
+            </div>
+
+            <div class="stat">
+                <div class="left">
+                    <small>Completed</small>
+                </div>
+                <div class="bubble complete" id="bubbleComp">
+                    <i class="fas fa-check-circle"></i>
+                    <div class="stat-badge complete-badge" id="badgeComp">0</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Monthly Goal - Compact layout dengan input yang lebih lebar -->
+        <div class="goal">
+            <div class="left">
+                <div class="icon"><i class="fas fa-bullseye"></i></div>
+                <div class="text">
+                    <small>TARGET / ACHIEVEMENT</small>
+                    <h4 id="goalText">ACHIEVE 150% SALES TARGET</h4>
+                </div>
+            </div>
+            <div class="actions">
+                <input id="goalInput" style="display:none" placeholder="Enter new goal" />
+                <button id="btnEditGoal" class="close-btn"><i class="fas fa-edit"></i></button>
+                <button id="btnSaveGoal" class="close-btn" style="display:none"><i class="fas fa-save"></i></button>
+            </div>
+        </div>
+
+        <!-- Panels: Not Started / In Progress / Completed (collapsible) -->
+        <div class="panels">
+            <div class="panel" id="panelNot">
+                <div class="header" onclick="togglePanel('Not')">
+                    <h5 style="color: var(--not)">Not Started</h5>
+                    <div class="count" id="countNot">0</div>
+                </div>
+                <div class="body" id="bodyNot"></div>
+            </div>
+
+            <div class="panel" id="panelProg">
+                <div class="header" onclick="togglePanel('Prog')">
+                    <h5 style="color: var(--progress)">In Progress</h5>
+                    <div class="count" id="countProg">0</div>
+                </div>
+                <div class="body" id="bodyProg"></div>
+            </div>
+
+            <div class="panel" id="panelComp">
+                <div class="header" onclick="togglePanel('Comp')">
+                    <h5 style="color: var(--complete)">Completed</h5>
+                    <div class="count" id="countComp">0</div>
+                </div>
+                <div class="body" id="bodyComp"></div>
+            </div>
+        </div>
+    </div> <!-- end dashboard -->
+
+</div> <!-- wrap -->
+
+<!-- Footer mission control -->
+<footer class="control" id="footerControl" style="display:none">
+    <div class="icon" id="bellBtn" title="Go to oldest incomplete">
+        <i class="fa-solid fa-tower-cell"></i>
+        <div class="badge" id="notifBadge">0</div>
+    </div>
+
+    <button class="add" id="openAdd" title="Add Mission"><i class="fa-solid fa-atom"></i></button>
+
+    <div class="icon" id="recapBtn" title="Open monthly recap">
+        <i class="fa-solid fa-chart-simple"></i>
+    </div>
+</footer>
+
+<!-- Add / Edit Modal -->
+<div id="addModal" class="modal-backdrop" style="display:none">
+    <div class="modal">
+        <div class="header">
+            <h4 id="modalTitle">Add Mission</h4>
+            <button class="close-btn" onclick="closeAddModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="body">
+            <label>Mission Title</label>
+            <input id="inputTitle" placeholder="MISSION TITLE" />
+            
+            <label>Mission Details</label>
+            <textarea id="inputNotes" rows="3" placeholder="Mission description and details"></textarea>
+
+            <div class="form-row">
+                <div>
+                    <label>Start Date</label>
+                    <input type="date" id="inputStart" />
+                </div>
+                <div>
+                    <label>Due Date</label>
+                    <input type="date" id="inputDue" />
+                </div>
+            </div>
+
+            <label>Priority</label>
+            <select id="inputPriority">
+                <option value="High">High</option>
+                <option value="Normal" selected>Normal</option>
+                <option value="Low">Low</option>
+            </select>
+
+            <label>Status</label>
+            <select id="inputStatus">
+                <option value="not started">Not Started</option>
+                <option value="in progress">In Progress</option>
+                <option value="completed">Completed</option>
+            </select>
+
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="closeAddModal()">Cancel</button>
+                <button class="save-btn" onclick="saveMission()">Save Mission</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recap Modal (Chart) -->
+<div id="recapModal" class="modal-backdrop" style="display:none">
+    <div class="modal">
+        <div class="header">
+            <h4>Monthly Mission Dashboard</h4>
+            <button class="close-btn" onclick="closeRecapModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="body">
+            <div class="chart-container">
+                <canvas id="recapChart"></canvas>
+            </div>
+            <div style="margin-top:12px;color:var(--muted);font-size:12px;text-align:center">
+                Mission completion trend over the past 6 months
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Task Detail Modal -->
+<div id="taskModal" class="modal-backdrop" style="display:none">
+    <div class="modal">
+        <div class="header">
+            <h4 id="taskModalTitle">Mission Details</h4>
+            <button class="close-btn" onclick="closeTaskModal()"><i class="fas fa-times"></i></button>
+        </div>
+        <div class="body">
+            <div id="taskModalContent"></div>
+            <div class="form-actions">
+                <button class="cancel-btn" onclick="closeTaskModal()">Close</button>
+                <button id="taskModalEditBtn" class="save-btn">Edit Mission</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================
+// KONFIGURASI APLIKASI
+// ============================
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwiPjU15tCHUvoVjhy4equJ2PI9aKCK7JUM-x3nQ2Tl1rIYrG0GPstTWM2gTzYr8BmU/exec';
+
+// Data awal
+let tasks = [];
+
+// Variabel global
+let editingId = null;
+let dueDateChecker = null;
+let recapChart = null;
+let syncInterval = null;
+
+// ============================
+// FUNGSI SINKRONISASI DATA
+// ============================
+async function syncTasksFromServer() {
+    try {
+        const userData = JSON.parse(localStorage.getItem('atomic_user') || '{}');
+        if (!userData.name) return;
+        
+        console.log('Mengambil data tasks dari server...');
+        
+        const response = await fetch(`${APPS_SCRIPT_URL}?action=getTasks&employee=${encodeURIComponent(userData.name)}`);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
+        const serverTasks = await response.json();
+        
+        if (serverTasks && serverTasks.length > 0) {
+            // Simpan timestamp sync terakhir
+            localStorage.setItem('last_sync', new Date().toISOString());
+            
+            // Update tasks lokal dengan data dari server
+            tasks = serverTasks;
+            
+            // Simpan ke localStorage
+            localStorage.setItem('atomic_tasks', JSON.stringify(tasks));
+            
+            // Render ulang UI
+            renderAll();
+            
+            console.log('Data berhasil disinkronisasi dari server', tasks);
+            showNotification('Data updated from server', 'success');
+        }
+    } catch (error) {
+        console.error('Error sinkronisasi data:', error);
+        // Tetap gunakan data lokal jika server error
+        const storedTasks = localStorage.getItem('atomic_tasks');
+        if (storedTasks) {
+            tasks = JSON.parse(storedTasks);
+            renderAll();
+        }
+    }
+}
+
+async function syncTasksToServer() {
+    try {
+        const userData = JSON.parse(localStorage.getItem('atomic_user') || '{}');
+        if (!userData.name) return;
+        
+        // Kirim semua tasks ke server
+        for (const task of tasks) {
+            await saveToGoogleSheets(task, 'sync');
+        }
+        
+        console.log('Semua tasks telah disinkronisasi ke server');
+    } catch (error) {
+        console.error('Error mengirim data ke server:', error);
+    }
+}
+
+// ============================
+// FUNGSI GOAL MANAGEMENT
+// ============================
+function loadGoal() {
+    const savedGoal = localStorage.getItem('atomic_monthly_goal');
+    if (savedGoal) {
+        document.getElementById('goalText').textContent = savedGoal;
+    } else {
+        // Default goal jika belum ada
+        document.getElementById('goalText').textContent = 'KPI ACCOUNTING 100%';
+    }
+}
+
+function saveGoal(newGoal) {
+    localStorage.setItem('atomic_monthly_goal', newGoal);
+    document.getElementById('goalText').textContent = newGoal;
+    showNotification('Monthly goal updated!', 'success');
+}
+
+// ============================
+// INISIALISASI APLIKASI
+// ============================
+document.addEventListener('DOMContentLoaded', function() {
+    // Cek apakah pengguna sudah login
+    const userData = JSON.parse(localStorage.getItem('atomic_user') || 'null');
+    if (userData && userData.name) {
+        doLogin(userData.name, userData.role, false);
+    } else {
+        document.getElementById('loginCard').style.display = 'block';
+        document.getElementById('footerControl').style.display = 'none';
+    }
+    
+    // Load tasks dari localStorage (sementara sampai sinkronisasi selesai)
+    const storedTasks = localStorage.getItem('atomic_tasks');
+    if (storedTasks) {
+        tasks = JSON.parse(storedTasks);
+    }
+    
+    // Load goal dari localStorage
+    loadGoal();
+    
+    // Render aplikasi
+    renderAll();
+    
+    // Minta izin notifikasi
+    if ('Notification' in window) {
+        Notification.requestPermission();
+    }
+    
+    // Mulai pengecekan due date
+    checkDueDates();
+    dueDateChecker = setInterval(checkDueDates, 60 * 60 * 1000); // Cek setiap jam
+    
+    // Setup event listeners
+    setupEventListeners();
+    
+    // Deteksi perubahan status koneksi
+    window.addEventListener('online', function() {
+        console.log('Koneksi internet tersedia, melakukan sinkronisasi...');
+        document.getElementById('connectionStatus').textContent = 'Online';
+        document.getElementById('connectionStatus').className = 'connection-status online';
+        setTimeout(() => {
+            document.getElementById('connectionStatus').style.display = 'none';
+        }, 3000);
+        
+        showNotification('Connection restored. Syncing data...', 'info');
+        syncTasksFromServer();
+    });
+
+    window.addEventListener('offline', function() {
+        console.log('Tidak ada koneksi internet');
+        document.getElementById('connectionStatus').textContent = 'Offline';
+        document.getElementById('connectionStatus').className = 'connection-status offline';
+        document.getElementById('connectionStatus').style.display = 'block';
+        
+        showNotification('No internet connection. Using local data.', 'warning');
+    });
+    
+    // Cek status koneksi awal
+    if (navigator.onLine) {
+        document.getElementById('connectionStatus').textContent = 'Online';
+        document.getElementById('connectionStatus').className = 'connection-status online';
+        setTimeout(() => {
+            document.getElementById('connectionStatus').style.display = 'none';
+        }, 3000);
+    } else {
+        document.getElementById('connectionStatus').textContent = 'Offline';
+        document.getElementById('connectionStatus').className = 'connection-status offline';
+        document.getElementById('connectionStatus').style.display = 'block';
+    }
+});
+
+// ============================
+// FUNGSI CHART (RECAP)
+// ============================
+function openRecapModal() {
+    buildRecapChart();
+    document.getElementById('recapModal').style.display = 'flex';
+}
+
+function closeRecapModal() {
+    document.getElementById('recapModal').style.display = 'none';
+    if (recapChart) {
+        recapChart.destroy();
+        recapChart = null;
+    }
+}
+
+function buildRecapChart() {
+    const ctx = document.getElementById('recapChart').getContext('2d');
+    
+    // Data contoh untuk chart (dalam aplikasi nyata, data ini akan dihitung dari tasks)
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+    const completedData = [5, 8, 12, 7, 15, 20];
+    const totalData = [8, 12, 15, 10, 18, 25];
+    
+    if (recapChart) {
+        recapChart.destroy();
+    }
+    
+    recapChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: months,
+            datasets: [
+                {
+                    label: 'Completed Missions',
+                    data: completedData,
+                    backgroundColor: 'rgba(110, 231, 183, 0.8)',
+                    borderColor: 'rgba(110, 231, 183, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                },
+                {
+                    label: 'Total Missions',
+                    data: totalData,
+                    backgroundColor: 'rgba(123, 97, 255, 0.6)',
+                    borderColor: 'rgba(123, 97, 255, 1)',
+                    borderWidth: 1,
+                    borderRadius: 6,
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'top',
+                    labels: {
+                        color: '#e6f3ff',
+                        font: {
+                            size: 12
+                        }
+                    }
+                },
+                title: {
+                    display: true,
+                    text: 'Mission Completion Overview',
+                    color: '#e6f3ff',
+                    font: {
+                        size: 16,
+                        weight: 'bold'
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        color: '#9fb7d9',
+                        precision: 0
+                    },
+                    grid: {
+                        color: 'rgba(159, 183, 217, 0.1)'
+                    }
+                },
+                x: {
+                    ticks: {
+                        color: '#9fb7d9'
+                    },
+                    grid: {
+                        color: 'rgba(159, 183, 217, 0.1)'
+                    }
+                }
+            }
+        }
+    });
+}
+
+// ============================
+// FUNGSI INTEGRASI GOOGLE SHEETS
+// ============================
+async function saveToGoogleSheets(task, action) {
+    try {
+        const userData = JSON.parse(localStorage.getItem('atomic_user') || '{}');
+        
+        const data = {
+            taskId: task.id,
+            task: task.title,
+            notes: task.notes,
+            date: task.date,
+            dueDate: task.due,
+            priority: task.priority || 'Normal',
+            status: task.status,
+            employee: userData.name || 'Unknown',
+            Role: userData.role || 'Unknown',
+            action: action
+        };
+        
+        console.log('Mengirim data ke Google Sheets:', data);
+        
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(data).toString()
+        });
+        
+        const result = await response.text();
+        console.log('Respons dari Google Sheets:', result);
+        
+        return true;
+    } catch (error) {
+        console.error('Error menyimpan ke Google Sheets:', error);
+        showNotification('Error menyimpan ke Google Sheets. Lihat konsol untuk detail.', 'error');
+        return false;
+    }
+}
+
+// ============================
+// FUNGSI NOTIFIKASI
+// ============================
+function checkDueDates() {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    tasks.forEach(task => {
+        if (task.status !== 'completed') {
+            const dueDate = new Date(task.due);
+            dueDate.setHours(0, 0, 0, 0);
+            
+            const diffTime = dueDate.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays <= 0) {
+                const alertKey = `dueAlert_${task.id}_${today.toDateString()}`;
+                if (!localStorage.getItem(alertKey)) {
+                    showNotification(`🚨 Mission "${task.title}" sudah jatuh tempo! Silakan selesaikan segera.`, 'warning');
+                    localStorage.setItem(alertKey, 'shown');
+                }
+            } else if (diffDays <= 3) {
+                const alertKey = `dueWarning_${task.id}_${today.toDateString()}`;
+                if (!localStorage.getItem(alertKey)) {
+                    showNotification(`⚠️ Mission "${task.title}" jatuh tempo dalam ${diffDays} hari.`, 'warning');
+                    localStorage.setItem(alertKey, 'shown');
+                }
+            }
+        }
+    });
+}
+
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'warning' ? 'fa-exclamation-triangle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+        <button class="notification-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (notification.parentElement) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+// ============================
+// FUNGSI RENDER & MANAJEMEN DATA
+// ============================
+function renderAll() {
+    renderTaskLists();
+    updateStats();
+    updateNotificationBadge();
+    localStorage.setItem('atomic_tasks', JSON.stringify(tasks));
+}
+
+function renderTaskLists() {
+    const bodies = {
+        'Not': document.getElementById('bodyNot'),
+        'Prog': document.getElementById('bodyProg'),
+        'Comp': document.getElementById('bodyComp')
+    };
+    
+    // Kosongkan konten
+    for (const key in bodies) {
+        bodies[key].innerHTML = '';
+    }
+    
+    // Filter dan urutkan task
+    const notStarted = tasks.filter(t => t.status === 'not started').sort((a, b) => new Date(a.date) - new Date(b.date));
+    const inProgress = tasks.filter(t => t.status === 'in progress').sort((a, b) => new Date(a.date) - new Date(b.date));
+    const completed = tasks.filter(t => t.status === 'completed').sort((a, b) => new Date(b.date) - new Date(a.date));
+    
+    // Render task
+    notStarted.forEach(task => bodies['Not'].appendChild(createTaskElement(task)));
+    inProgress.forEach(task => bodies['Prog'].appendChild(createTaskElement(task)));
+    completed.forEach(task => bodies['Comp'].appendChild(createTaskElement(task)));
+    
+    // Tampilkan pesan jika tidak ada task
+    if (notStarted.length === 0) bodies['Not'].innerHTML = '<div style="color:var(--muted);padding:10px;text-align:center;font-size:12px">No missions</div>';
+    if (inProgress.length === 0) bodies['Prog'].innerHTML = '<div style="color:var(--muted);padding:10px;text-align:center;font-size:12px">No missions</div>';
+    if (completed.length === 0) bodies['Comp'].innerHTML = '<div style="color:var(--muted);padding:10px;text-align:center;font-size:12px">No missions</div>';
+    
+    // Update counter
+    document.getElementById('countNot').textContent = notStarted.length;
+    document.getElementById('countProg').textContent = inProgress.length;
+    document.getElementById('countComp').textContent = completed.length;
+}
+
+function createTaskElement(task) {
+    const el = document.createElement('div');
+    el.className = `task ${task.status.replace(' ', '-')}`;
+    el.innerHTML = `
+        <div class="title" onclick="showTaskDetails(${task.id})">${escapeHtml(task.title)}</div>
+        <div class="notes">${escapeHtml(task.notes)}</div>
+        <div class="meta">
+            <div>
+                <div style="font-size:11px;color:var(--muted)">${formatDate(task.date)}</div>
+                <div style="font-size:10px;color:var(--muted)">Due: ${formatDate(task.due)}</div>
+                ${task.priority ? `<div style="font-size:10px;color:var(--muted);margin-top:2px">Priority: ${task.priority}</div>` : ''}
+            </div>
+            <div style="text-align:right">
+                <div class="pill ${task.status.replace(' ', '-')}">${task.status.toUpperCase()}</div>
+                <div style="margin-top:6px" class="task-actions">
+                    <button onclick="startEditTask(${task.id})"><i class="fas fa-edit"></i></button>
+                    <button onclick="deleteTask(${task.id})"><i class="fas fa-trash"></i></button>
+                </div>
+            </div>
+        </div>
+    `;
+    return el;
+}
+
+function updateStats() {
+    const total = tasks.length;
+    const notStarted = tasks.filter(t => t.status === 'not started').length;
+    const inProgress = tasks.filter(t => t.status === 'in progress').length;
+    const completed = tasks.filter(t => t.status === 'completed').length;
+    
+    // Update badge (hanya badge, tanpa teks angka)
+    document.getElementById('badgeTotal').textContent = total;
+    document.getElementById('badgeNot').textContent = notStarted;
+    document.getElementById('badgeProg').textContent = inProgress;
+    document.getElementById('badgeComp').textContent = completed;
+}
+
+function updateNotificationBadge() {
+    const incompleteCount = tasks.filter(t => t.status !== 'completed').length;
+    const badge = document.getElementById('notifBadge');
+    badge.textContent = incompleteCount;
+    badge.style.display = incompleteCount > 0 ? 'block' : 'none';
+}
+
+// ============================
+// FUNGSI MANAJEMEN TASK
+// ============================
+async function saveMission() {
+    const title = document.getElementById('inputTitle').value.trim().toUpperCase();
+    if (!title) {
+        showNotification('Judul mission harus diisi', 'error');
+        return;
+    }
+    
+    const notes = document.getElementById('inputNotes').value.trim().toUpperCase();
+    const date = document.getElementById('inputStart').value;
+    const due = document.getElementById('inputDue').value;
+    const priority = document.getElementById('inputPriority').value;
+    const status = document.getElementById('inputStatus').value;
+    
+    if (editingId) {
+        // Edit task yang sudah ada
+        const index = tasks.findIndex(t => t.id === editingId);
+        if (index !== -1) {
+            tasks[index] = {
+                ...tasks[index],
+                title,
+                notes,
+                date,
+                due,
+                priority,
+                status
+            };
+            
+            // Simpan ke Google Sheets
+            await saveToGoogleSheets(tasks[index], 'update');
+        }
+    } else {
+        // Buat task baru
+        const newTask = {
+            id: Date.now() + Math.floor(Math.random() * 1000),
+            title,
+            notes,
+            date,
+            due,
+            priority,
+            status
+        };
+        
+        tasks.push(newTask);
+        
+        // Simpan ke Google Sheets
+        await saveToGoogleSheets(newTask, 'add');
+    }
+    
+    closeAddModal();
+    renderAll();
+    
+    // Sinkronisasi ke server
+    await syncTasksToServer();
+    
+    // Tampilkan notifikasi
+    showNotification(editingId ? 'Mission updated successfully!' : 'Mission added successfully!', 'success');
+}
+
+function startEditTask(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    editingId = id;
+    document.getElementById('modalTitle').textContent = 'Edit Mission';
+    document.getElementById('inputTitle').value = task.title;
+    document.getElementById('inputNotes').value = task.notes;
+    document.getElementById('inputStart').value = task.date;
+    document.getElementById('inputDue').value = task.due;
+    document.getElementById('inputPriority').value = task.priority || 'Normal';
+    document.getElementById('inputStatus').value = task.status;
+    
+    document.getElementById('addModal').style.display = 'flex';
+}
+
+async function deleteTask(id) {
+    if (!confirm('Are you sure you want to delete this mission?')) return;
+    
+    const taskToDelete = tasks.find(t => t.id === id);
+    tasks = tasks.filter(t => t.id !== id);
+    
+    // Hapus dari Google Sheets
+    if (taskToDelete) {
+        await saveToGoogleSheets(taskToDelete, 'delete');
+    }
+    
+    renderAll();
+    
+    // Sinkronisasi ke server
+    await syncTasksToServer();
+    
+    showNotification('Mission deleted successfully!', 'success');
+}
+
+function showTaskDetails(id) {
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+    
+    document.getElementById('taskModalTitle').textContent = task.title;
+    document.getElementById('taskModalContent').innerHTML = `
+        <div style="margin-bottom:12px">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:3px">Description</div>
+            <div>${escapeHtml(task.notes)}</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+            <div>
+                <div style="font-size:13px;color:var(--muted);margin-bottom:3px">Start Date</div>
+                <div>${formatDate(task.date)}</div>
+            </div>
+            <div>
+                <div style="font-size:13px;color:var(--muted);margin-bottom:3px">Due Date</div>
+                <div>${formatDate(task.due)}</div>
+            </div>
+        </div>
+        <div style="margin-bottom:12px">
+            <div style="font-size:13px;color:var(--muted);margin-bottom:3px">Priority</div>
+            <div>${task.priority || 'Normal'}</div>
+        </div>
+        <div>
+            <div style="font-size:13px;color:var(--muted);margin-bottom:3px">Status</div>
+            <div class="pill ${task.status.replace(' ', '-')}">${task.status.toUpperCase()}</div>
+        </div>
+    `;
+    
+    document.getElementById('taskModalEditBtn').onclick = function() {
+        closeTaskModal();
+        startEditTask(id);
+    };
+    
+    document.getElementById('taskModal').style.display = 'flex';
+}
+
+// ============================
+// FUNGSI UTILITAS
+// ============================
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
+function formatDate(dateString) {
+    if (!dateString) return 'N/A';
+    const date = new Date(dateString);
+    if (isNaN(date)) return dateString;
+    return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+}
+
+function setupEventListeners() {
+    // Login
+    document.getElementById('btnLogin').addEventListener('click', function() {
+        const name = document.getElementById('inputName').value.trim();
+        const role = document.getElementById('inputRole').value.trim();
+        
+        if (!name || !role) {
+            showNotification('Please enter your name and select a role', 'error');
+            return;
+        }
+        
+        doLogin(name, role, true);
+    });
+    
+    // Open add mission modal
+    document.getElementById('openAdd').addEventListener('click', function() {
+        editingId = null;
+        document.getElementById('modalTitle').textContent = 'Add Mission';
+        document.getElementById('inputTitle').value = '';
+        document.getElementById('inputNotes').value = '';
+        
+        const today = new Date();
+        document.getElementById('inputStart').valueAsDate = today;
+        
+        const dueDate = new Date();
+        dueDate.setDate(today.getDate() + 3);
+        document.getElementById('inputDue').valueAsDate = dueDate;
+        
+        document.getElementById('inputPriority').value = 'Normal';
+        document.getElementById('inputStatus').value = 'not started';
+        
+        document.getElementById('addModal').style.display = 'flex';
+    });
+    
+    // Recap button
+    document.getElementById('recapBtn').addEventListener('click', openRecapModal);
+    
+    // Goal editing
+    document.getElementById('btnEditGoal').addEventListener('click', function() {
+        document.getElementById('goalInput').style.display = 'inline-block';
+        document.getElementById('goalInput').value = document.getElementById('goalText').textContent;
+        document.getElementById('goalText').style.display = 'none';
+        document.getElementById('btnEditGoal').style.display = 'none';
+        document.getElementById('btnSaveGoal').style.display = 'inline-block';
+        document.getElementById('goalInput').focus();
+    });
+    
+    document.getElementById('btnSaveGoal').addEventListener('click', function() {
+        const newGoal = document.getElementById('goalInput').value.trim().toUpperCase();
+        if (!newGoal) {
+            showNotification('Goal cannot be empty', 'error');
+            return;
+        }
+        
+        // Simpan goal ke localStorage
+        saveGoal(newGoal);
+        
+        document.getElementById('goalInput').style.display = 'none';
+        document.getElementById('goalText').style.display = 'block';
+        document.getElementById('btnEditGoal').style.display = 'inline-block';
+        document.getElementById('btnSaveGoal').style.display = 'none';
+    });
+    
+    // Bell button - show oldest incomplete task
+    document.getElementById('bellBtn').addEventListener('click', function() {
+        const incompleteTasks = tasks.filter(t => t.status !== 'completed');
+        if (incompleteTasks.length === 0) {
+            showNotification('All missions completed!', 'success');
+            return;
+        }
+        
+        incompleteTasks.sort((a, b) => new Date(a.date) - new Date(b.date));
+        showTaskDetails(incompleteTasks[0].id);
+    });
+}
+
+function doLogin(name, role, saveToStorage) {
+    const upperName = name.toUpperCase();
+    
+    document.getElementById('profileName').textContent = upperName;
+    document.getElementById('profileRole').textContent = role;
+    
+    // Set avatar initial
+    const initials = upperName.split(' ').map(n => n[0]).join('').slice(0, 2);
+    document.getElementById('avatarInitial').textContent = initials;
+    
+    // Tampilkan UI setelah login
+    document.getElementById('profilePanel').style.display = 'flex';
+    document.getElementById('loginCard').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    document.getElementById('footerControl').style.display = 'flex';
+    
+    // Load goal setelah login
+    loadGoal();
+    
+    // Simpan data user jika diperlukan
+    if (saveToStorage) {
+        localStorage.setItem('atomic_user', JSON.stringify({ name: upperName, role }));
+    }
+    
+    // Sinkronisasi tasks dari server
+    syncTasksFromServer();
+    
+    // Mulai sinkronisasi berkala setiap 2 menit
+    if (syncInterval) clearInterval(syncInterval);
+    syncInterval = setInterval(syncTasksFromServer, 2 * 60 * 1000);
+    
+    showNotification(`Welcome, ${upperName}! Data syncing automatically`, 'success');
+}
+
+function togglePanel(panel) {
+    const body = document.getElementById(`body${panel}`);
+    body.style.display = body.style.display === 'none' ? 'block' : 'none';
+}
+
+function closeAddModal() {
+    document.getElementById('addModal').style.display = 'none';
+    editingId = null;
+}
+
+function closeTaskModal() {
+    document.getElementById('taskModal').style.display = 'none';
+}
+
+// Clean up ketika window ditutup
+window.addEventListener('beforeunload', function() {
+    if (dueDateChecker) {
+        clearInterval(dueDateChecker);
+    }
+    if (syncInterval) {
+        clearInterval(syncInterval);
+    }
+});
+</script>
+</body>
+</html>
